@@ -10,8 +10,5 @@ class City extends KOATUU
         return $this->where('reg_id',$region_id)->where('ter_level', 2)->findAll();
     }
 
-    public function getAllChildrenTerritoryByCity($ter_id)
-    {
-        return $this->where('ter_pid',$ter_id)->findAll();
-    }
+
 }

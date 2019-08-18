@@ -10,22 +10,23 @@ class Model
     /**
      * @var string
      */
-    protected $entity;
+    protected $_entity;
 
     /**
      * @var string
      */
-    protected $table;
+    protected $_table;
 
     /**
      * @var array
      */
-    protected $data;
+    protected $_data;
 
     /**
      * @var QueryBuilder
      */
     protected $queryBuilder;
+
 
     /**
      * @var string
@@ -40,22 +41,32 @@ class Model
      */
     public function __construct()
     {
-        $this->entity = get_called_class();
-        if($this->table === null) $this->setTableByEntity($this->entity);
-        $this->queryBuilder = new QueryBuilder($this->table);
+        $this->_entity = get_called_class();
+        if($this->_table === null) $this->setTableByEntity($this->_entity);
+        $this->queryBuilder = new QueryBuilder($this->_table);
     }
 
 
-    protected function query()
+    public function query()
     {
         return $this->queryBuilder;
     }
 
+    public function first()
+    {
+        $data = $this->query()->get();
+        if($data){
+            $this->setData($data);
+            return $this->getData()[0];
+        }
+        return null;
+    }
+
     /**
-     * @param int $id
+     * @param mixed $id
      * @return object|null
      */
-    protected function find(int $id)
+    public function find($id)
     {
         $data = $this->query()->select()->where($this->primaryKey,$id)->get();
         if($data){
@@ -65,7 +76,7 @@ class Model
         return null;
     }
 
-    protected function findAll()
+    public function findAll()
     {
         $data = $this->query()->all();
         if($data){
@@ -75,26 +86,26 @@ class Model
         return null;
     }
 
-    protected function where($column, $operator, $param = null)
+    public function where($column, $operator, $param = null)
     {
         $this->query()->where($column, $operator, $param);
         return $this;
     }
 
-    protected function save()
+    public function save(array $params = [])
     {
-        $params = $this->getProperties();
-        $query =  $this->query()->insert($params);
-        return  $this->query()->add($query,$params);
-
+        if(!$params) {
+            $params = $this->getProperties();
+        }
+        return $this->query()->insert($params);
     }
 
-    protected function delete()
+    public function delete()
     {
         return $this->query()->delete();
     }
 
-    protected function update()
+    public function update()
     {
         $params = $this->getProperties();
         return $this->query()->update($params);
@@ -117,49 +128,21 @@ class Model
         $entity = $this->getEntity();
         $object =  new $entity();
         foreach ($data as $key => $val){
-            $this->setProperty($object, $key, $val);
+            $object->$key = $val;
         }
-        $this->data[] = $object;
+        $this->_data[] = $object;
 
         return $this;
-    }
-
-    /**
-     * @param object $object
-     * @param string $property
-     * @param $value
-     * @return $this
-     * @throws \Exception
-     */
-    protected function setProperty(object $object, string $property, $value)
-    {
-        $method = $this->findObjectMethod($object, 'set'.$property);
-        $object->$method($value);
-        return $this;
-    }
-
-    /**
-     * @param object $object
-     * @param string $property
-     * @return mixed
-     * @throws \Exception
-     */
-    protected function getProperty(object $object, string $property)
-    {
-        $method = $this->findObjectMethod($object, 'set'.$property);
-        return $object->$method();
-
     }
 
     /**
      * @return array
-     * @throws \Exception
      */
     protected function getProperties()
     {
         $result = [];
         foreach ($this->getFillable() as $property) {
-            $result[$property] = $this->getProperty($property);
+            $result[$property] = $this->$property;
         }
         return $result;
     }
@@ -167,9 +150,9 @@ class Model
     /**
      * @return array
      */
-    protected function getData()
+    public function getData()
     {
-        return $this->data;
+        return $this->_data;
     }
 
     /**
@@ -177,7 +160,7 @@ class Model
      */
     protected function getEntity()
     {
-        return $this->entity;
+        return $this->_entity;
     }
 
     /**
@@ -186,7 +169,7 @@ class Model
      */
     private function setTableByEntity($entity)
     {
-        $this->table =  mb_strtolower(str_ireplace("model\\", "", $entity));
+        $this->_table =  mb_strtolower(str_ireplace("model\\", "", $entity));
         return $this;
     }
 
@@ -195,15 +178,13 @@ class Model
         return $this->fillable;
     }
 
-    private function findObjectMethod($object, $method)
+    public function toArray()
     {
-        if(method_exists($object, $method)){
-            return $method;
+        $array = [];
+        $properties = $this->getFillable();
+        foreach ($properties as $property){
+            $array[$property] = $this->$property;
         }
-        elseif(method_exists($object, $method = str_replace('_', '',$method))){
-            return str_replace('_', '',$method);
-        }
-        throw new \Exception("$object::$method not exist");
+        return $array;
     }
-
 }

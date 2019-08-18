@@ -3,6 +3,8 @@
 namespace Controller;
 
 use Model\User;
+use View\UserView;
+use Model\Region;
 
 class UserController extends Controller
 {
@@ -11,13 +13,38 @@ class UserController extends Controller
      */
     private $model;
 
+    private $view;
+
     public function __construct()
     {
         $this->model = new User();
+        $this->view = new UserView();
     }
 
     public function index()
     {
-        $this->model->test();
+       $user = $this->model->findAll();
+       $this->view->index(['users' => $user]);
+    }
+
+    public function registerForm()
+    {
+        $region = new Region();
+        $this->view->register(['regions' => $region->getAll()]);
+    }
+
+    public function create()
+    {
+        $data = $this->getPostData(['name','email','city_id']);
+        $user = $this->model->where('email',$data['email'])->first();
+        if($user){
+            $array = $user->toArray();
+            $array['territory'] = $user->territory()->ter_address;
+            setError("Пользователь с email: {$data['email']} существует.", ['user'=>$array]);
+            redirect('register');
+        }
+        unsetError();
+        $this->model->save($data);
+        redirect('/');
     }
 }

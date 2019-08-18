@@ -93,8 +93,7 @@ class QueryBuilder extends Database
 
     private function insertQuery(array $fields)
     {
-        $query_fields = $this->transformFieldsInsert($fields, true);
-
+        $query_fields = $this->transformFieldsInsert($fields);
         return "INSERT INTO {$this->getTable()} ({$query_fields['fields']}) VALUES({$query_fields['prepare']});";
     }
 
@@ -129,8 +128,6 @@ class QueryBuilder extends Database
         $query .= $this->getWhere();
         $query .= $this->getOrder();
         $this->setQuery($query);
-//        dump($this->getParams());
-//        dd($this->);
         return $this->getAll($query, $this->getParams());
     }
 
@@ -158,6 +155,7 @@ class QueryBuilder extends Database
      */
     private function transformWhere()
     {
+        if(!$this->where) return null;
         $queryWhere = ' WHERE ';
         $whereArray = [];
         foreach ($this->where as $operator => $array){
@@ -258,14 +256,13 @@ class QueryBuilder extends Database
      * @param array $fields
      * @return array
      */
-    private function transformFieldsInsert(array $fields, $transformKey = false)
+    private function transformFieldsInsert(array $fields)
     {
         $prepare_value = '';
         $fields_str = '';
         foreach ($fields as $key => $field){
-            if($transformKey) $field = $transformKey;
-            $fields_str .= "$field,";
-            $prepare_value .= ":$field,";
+            $fields_str .= "$key,";
+            $prepare_value .= ":$key,";
         }
         $fields_str = substr($fields_str, 0, -1);
         $prepare_value = substr($prepare_value, 0 , -1);

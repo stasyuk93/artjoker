@@ -2,7 +2,7 @@
 
 namespace Controller;
 use Model\Region;
-use Model\City;
+use Model\KOATUU;
 
 class TerritoryController extends Controller
 {
@@ -12,17 +12,11 @@ class TerritoryController extends Controller
         return $region->getAll();
     }
 
-    public function getAllCitiesByRegion($region_id)
+    public function getAllChildrenTerritory($ter_id)
     {
-        if(strlen($region_id) == 1) $region_id = "0$region_id";
-        $city = new City();
-//        dd($city->getAllCitiesByRegion($region_id));
-        return $city->getAllCitiesByRegion($region_id);
+        $koattu = new KOATUU();
+        $koattu->getAllChildrenTerritory($ter_id);
+        return responseJson($koattu->getData());
     }
 
-    public function getAllChildrenTerritoryByCity($ter_id)
-    {
-        $city = new City();
-        dd($city->getAllChildrenTerritoryByCity($ter_id));
-    }
 }
