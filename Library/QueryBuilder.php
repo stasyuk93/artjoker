@@ -36,6 +36,11 @@ class QueryBuilder extends Database
     private $params;
 
     /**
+     * @var string
+     */
+    private $limit;
+
+    /**
      * @var array
      */
     private $counter = [];
@@ -45,6 +50,10 @@ class QueryBuilder extends Database
         $this->table = $table;
     }
 
+    public function count()
+    {
+        return self::getFetchColumn($this->select('COUNT(*)')->select);
+    }
 
     public function select($fields = '*')
     {
@@ -127,6 +136,7 @@ class QueryBuilder extends Database
         $query = empty($this->select)? $this->select()->select : $this->select;
         $query .= $this->getWhere();
         $query .= $this->getOrder();
+        $query .= $this->getLimit();
         $this->setQuery($query);
         return $this->getAll($query, $this->getParams());
     }
@@ -311,4 +321,25 @@ class QueryBuilder extends Database
 
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    public function getLimit()
+    {
+        return $this->limit;
+    }
+
+    /**
+     * @param $limit
+     * @param null $offset
+     * @return $this
+     */
+    public function setLimit($limit, $offset = null)
+    {
+        $this->limit = "LIMIT $limit ";
+        if($offset !== null) $this->limit .= "OFFSET $offset ";
+        return $this;
+    }
+
 }

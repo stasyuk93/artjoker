@@ -65,7 +65,9 @@ class Database
         self::$sth = self::getDbh()->prepare($query);
         self::$sth->execute((array) $param);
 //        self::$sth->debugDumpParams();
-        return self::$sth->fetchAll(PDO::FETCH_ASSOC);
+        $data =  self::$sth->fetchAll(PDO::FETCH_ASSOC);
+        if(!$data) return null;
+        return $data;
     }
 
     /**
@@ -89,5 +91,17 @@ class Database
         self::$sth = self::getDbh()->prepare($query);
         self::$sth->execute((array) $param);
         return self::$sth->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * @param $query
+     * @param array $param
+     * @return mixed
+     */
+    public static function getFetchColumn($query, $param = array())
+    {
+        self::$sth = self::getDbh()->prepare($query);
+        self::$sth->execute((array) $param);
+        return self::$sth->fetchColumn();
     }
 }

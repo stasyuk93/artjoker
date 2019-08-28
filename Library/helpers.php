@@ -1,5 +1,10 @@
 <?php
 
+function app($key)
+{
+    return \Library\Container::get($key);
+}
+
 /**
  * Gets the value of an environment variable.
  *
@@ -77,5 +82,28 @@ function redirect($uri,$setRequest = false)
     if($setRequest) $_SESSION['old'] = $_REQUEST;
     if($uri == '/') $uri = '';
     header("Location: {$_SERVER['HTTP_ORIGIN']}/$uri");
+    exit();
+}
+
+/**
+ * @return bool|Library\Router
+ */
+function route()
+{
+    return app('Router');
+}
+
+/**
+ * @return bool|Library\Request
+ */
+function request()
+{
+    return app('Request');
+}
+
+function notFound()
+{
+    header("HTTP/1.0 404 Not Found");
+    echo "404 Not found";
     exit();
 }

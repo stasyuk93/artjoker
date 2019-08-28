@@ -15,8 +15,7 @@ class TerritoryController extends Controller
     public function getAllChildrenTerritory($ter_id)
     {
         $koattu = new KOATUU();
-        $koattu->getAllChildrenTerritory($ter_id);
-        return responseJson($koattu->getData());
+        return responseJson($koattu->getAllChildrenTerritory($ter_id));
     }
 
 }

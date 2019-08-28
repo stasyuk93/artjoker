@@ -3,6 +3,7 @@
 namespace Model;
 
 use Library\QueryBuilder;
+use Library\Paginate;
 
 class Model
 {
@@ -23,17 +24,34 @@ class Model
     protected $_data;
 
     /**
-     * @var QueryBuilder
-     */
-    protected $queryBuilder;
-
-
-    /**
      * @var string
      */
     protected $primaryKey = 'id';
 
+    /**
+     * @var array
+     */
     protected $fillable = [];
+
+    /**
+     * @var Paginate|NULL
+     */
+    protected $paginate;
+
+    /**
+     * @var int
+     */
+    protected $countPerPage = 10;
+
+    /**
+     * @var null|int
+     */
+    protected $_count;
+
+    /**
+     * @var QueryBuilder|null
+     */
+    protected $queryBuilder;
 
     /**
      * Model constructor.
@@ -43,18 +61,22 @@ class Model
     {
         $this->_entity = get_called_class();
         if($this->_table === null) $this->setTableByEntity($this->_entity);
-        $this->queryBuilder = new QueryBuilder($this->_table);
     }
 
-
+    /**
+     * @return QueryBuilder
+     */
     public function query()
     {
-        return $this->queryBuilder;
+        return new QueryBuilder($this->_table);
     }
 
+    /**
+     * @return object|null
+     */
     public function first()
     {
-        $data = $this->query()->get();
+        $data = $this->queryBuilder->get();
         if($data){
             $this->setData($data);
             return $this->getData()[0];
@@ -78,17 +100,27 @@ class Model
 
     public function findAll()
     {
-        $data = $this->query()->all();
+        $data = $this->queryBuilder->all();
         if($data){
             $this->setDatas($data);
             return $this->getData();
         }
-        return null;
+        return [];
     }
 
+    /**
+     * @param $column
+     * @param $operator
+     * @param null $param
+     * @return $this
+     */
     public function where($column, $operator, $param = null)
     {
-        $this->query()->where($column, $operator, $param);
+        if($this->queryBuilder === null){
+            $this->queryBuilder = $this->query()->where($column, $operator, $param);
+        } else {
+            $this->queryBuilder->where($column, $operator, $param);
+        }
         return $this;
     }
 
@@ -111,6 +143,10 @@ class Model
         return $this->query()->update($params);
     }
 
+    /**
+     * @param $data
+     * @return $this
+     */
     protected function setDatas($data)
     {
         foreach ($data as $item){
@@ -173,11 +209,17 @@ class Model
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getFillable()
     {
         return $this->fillable;
     }
 
+    /**
+     * @return array
+     */
     public function toArray()
     {
         $array = [];
@@ -187,4 +229,55 @@ class Model
         }
         return $array;
     }
+
+    /**
+     * @return NULL|Paginate
+     */
+    public function getPaginate()
+    {
+        return $this->paginate;
+    }
+
+    /**
+     * @return $this
+     */
+    protected function setPaginate()
+    {
+        $this->paginate = new Paginate(ceil($this->count() / $this->countPerPage), $this->countPerPage);
+        return $this;
+    }
+
+    /**
+     * @return QueryBuilder
+     */
+    public function limit()
+    {
+        if($this->paginate === null) $this->setPaginate();
+        $offset = abs(($this->paginate->getCurrentPage() - 1) * $this->countPerPage);
+        if($offset > $this->count()) notFound();
+        return $this->query()->setLimit($this->countPerPage, $offset);
+    }
+
+    /**
+     * @return array
+     */
+    public function paginate()
+    {
+        $data = $this->limit()->all();
+        if($data){
+            $this->setDatas($data);
+            return $this->getData();
+        }
+        return [];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function count()
+    {
+        if($this->_count === null) $this->_count = $this->query()->count();
+        return $this->_count;
+    }
+
 }

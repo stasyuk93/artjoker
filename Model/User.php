@@ -2,6 +2,7 @@
 
 namespace Model;
 use Model\KOATUU;
+use Library\Paginate;
 
 class User extends Model
 {

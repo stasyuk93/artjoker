@@ -93,8 +93,10 @@ class Router
         }
         $this->routes[] = $route;
     }
+
+
     /**
-     * Matches the current request against mapped routes
+     * @return bool|mixed
      */
     public function matchCurrentRequest() {
         $requestMethod = (isset($_POST['_method']) && ($_method = strtoupper($_POST['_method'])) && in_array($_method,array('PUT','DELETE'))) ? $_method : $_SERVER['REQUEST_METHOD'];
@@ -105,10 +107,11 @@ class Router
         }
         return $this->match($requestUrl, $requestMethod);
     }
+
     /**
-     * Match given request url and request method and see if a route has been defined for it
-     * If so, return route's target
-     * If called multiple times
+     * @param $requestUrl
+     * @param string $requestMethod
+     * @return bool|mixed
      */
     public function match($requestUrl, $requestMethod = 'GET') {
 
@@ -119,7 +122,7 @@ class Router
             // check if request url matches route regex. if not, return false.
             if (!preg_match("@^".$route->getRegex()."*$@i", $requestUrl, $matches)) continue;
             $params = array();
-            if (preg_match_all("/:([\w-]+)/", $route->getUrl(), $argument_keys)) {
+            if (preg_match_all("/{([\w-]+)}/", $route->getUrl(), $argument_keys)) {
                 // grab array with matches
                 $argument_keys = $argument_keys[1];
                 // loop trough parameter names, store matching value in $params array
@@ -132,33 +135,39 @@ class Router
             return $route;
 
         }
-        echo "404";
-        return false;
+        notFound();
     }
 
     /**
-     * Reverse route a named route
-     *
-     * @param string $route_name The name of the route to reverse route.
-     * @param array $params Optional array of parameters to use in URL
-     * @return string The url to the route
+     * @param $routeName
+     * @param array $params
+     * @return null|string|string[]
+     * @throws \Exception
      */
     public function generate($routeName, array $params = array()) {
         // Check if route exists
         if (!isset($this->namedRoutes[$routeName]))
-            throw new Exception("No route with the name $routeName has been found.");
+            throw new \Exception("No route with the name $routeName has been found.");
         $route = $this->namedRoutes[$routeName];
         $url = $route->getUrl();
         // replace route url with given parameters
-        if ($params && preg_match_all("/:(\w+)/", $url, $param_keys)) {
+        if ($params && preg_match_all("/{(\w+)}/", $url, $param_keys)) {
             // grab array with matches
             $param_keys = $param_keys[1];
             // loop trough parameter names, store matching value in $params array
             foreach ($param_keys as $i => $key) {
-                if (isset($params[$key]))
-                    $url = preg_replace("/:(\w+)/", $params[$key], $url, 1);
+                if (isset($params[$key])) {
+                    $url = preg_replace("/{(\w+)}/", $params[$key], $url, 1);
+                    unset($params[$key]);
+                }
             }
+
         }
+        if ($params){
+            $url = request()->getUrlWithParams($params, $url);
+        }
+
         return $url;
     }
+
 }

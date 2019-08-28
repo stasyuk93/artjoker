@@ -23,8 +23,8 @@ class UserController extends Controller
 
     public function index()
     {
-       $user = $this->model->findAll();
-       $this->view->index(['users' => $user]);
+       $user = $this->model->paginate();
+       $this->view->index(['users' => $user, 'links' => $this->model->getPaginate()->links()]);
     }
 
     public function registerForm()

@@ -22,11 +22,7 @@ class KOATUU extends Model
 
     public function getAllChildrenTerritory($ter_id)
     {
-        return $this->where('ter_pid',$ter_id)->findAll();
+        return $this->query()->where('ter_pid',$ter_id)->all();
     }
 
-//    public function getAllCitiesByRegion($reg_id)
-//    {
-//        return $this->where('reg_id',$reg_id)->where('')->findAll();
-//    }
 }

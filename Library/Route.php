@@ -67,7 +67,7 @@ class Route
         $this->filters = $filters;
     }
     public function getRegex() {
-        return preg_replace_callback("/:(\w+)/", array(&$this, 'substituteFilter'), $this->url);
+        return preg_replace_callback("/{(\w+)}/", array(&$this, 'substituteFilter'), $this->url);
     }
     private function substituteFilter($matches) {
         if (isset($matches[1]) && isset($this->filters[$matches[1]])) {

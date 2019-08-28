@@ -1,3 +1,4 @@
+
 <div class="navbar">
     <a class="btn btn-primary" href="/register">Create user</a>
 </div>
@@ -11,7 +12,7 @@
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($users as $user): ?>
+        <?php foreach ((array)$users as $user): ?>
         <tr>
             <td><?=$user->id?></td>
             <td><?=$user->name?></td>
@@ -21,3 +22,4 @@
         <?php endforeach; ?>
     </tbody>
 </table>
+<?=$links?>

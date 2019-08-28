@@ -10,3 +10,4 @@ spl_autoload_register(function ($class) {
     }
 });
 
+\Library\Container::init();
